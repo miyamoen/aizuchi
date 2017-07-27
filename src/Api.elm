@@ -6,6 +6,7 @@ import Json.Decode exposing (int, string, float, list, Decoder)
 import Json.Decode.Pipeline exposing (decode, required, optional, hardcoded)
 import Types exposing (..)
 import Rocket exposing ((=>))
+import Debug exposing (log, crash)
 
 
 {-
@@ -72,16 +73,20 @@ login : String -> LoginForm -> Cmd Msg
 login domain form =
     let
         handler : Response String -> Result String (List String)
-        handler { url, status, headers, body } =
-            case status.code of
-                200 ->
-                    Ok [ "User name or password is wrong." ]
+        handler ({ url, status, headers, body } as res) =
+            let
+                re =
+                    log "なんふぁ" res
+            in
+                case status.code of
+                    200 ->
+                        Ok []
 
-                302 ->
-                    Ok []
+                    302 ->
+                        Ok []
 
-                _ ->
-                    Err "Unexpected Status Code"
+                    _ ->
+                        Err "Unexpected Status Code"
     in
         post (domain ++ "/login")
             |> withHeader "Content-Type" "application/x-www-form-urlencoded"
@@ -142,5 +147,5 @@ transformSignupForm { name, email, password } =
 transformLoginForm : LoginForm -> List ( String, String )
 transformLoginForm { name, password } =
     [ ( "username", name )
-    , ( "user/password", password )
+    , ( "password", password )
     ]
