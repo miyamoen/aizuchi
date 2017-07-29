@@ -24,17 +24,21 @@ type Route
 
 
 type alias SignupForm =
-    { errors : List String
-    , name : String
+    { name : String
+    , nameErrors : List String
     , email : String
+    , emailErrors : List String
     , password : String
+    , passwordErrors : List String
     }
 
 
 type alias LoginForm =
-    { errors : List String
+    { error : Maybe String
     , name : String
+    , nameErrors : List String
     , password : String
+    , passwordErrors : List String
     }
 
 
@@ -115,11 +119,16 @@ type Msg
     = SetRoute Route
     | MoveTo Route
     | Signup
-    | SignupResult (List String)
+    | OkSignup ( String, String )
+      -- | SignupResult (Result SignupForm ())
     | SetSignupForm SignupForm
     | Login
-    | LoginResult (List String)
+    | OkLogin ( String, String )
+      -- | LoginResult (Result LoginForm ( String, String ))
     | SetLoginForm LoginForm
     | Logout
-    | LogoutResult (List String)
-    | GetBoards (Result Error (List Board))
+    | OkLogout
+    | GetBoards (List Board)
+      -- | GetIdentity ( String, String )
+    | Unauthenticated
+    | NoHandle String

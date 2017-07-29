@@ -43,15 +43,52 @@ topElement model =
 
 
 signupElement : Model -> Element Styles variation Msg
-signupElement model =
+signupElement { signupForm } =
     column None
-        [ height <| fill 1
-        , width <| fill 1
+        [ width <| fill 1
         , verticalCenter
         , center
         , spacingXY 25 25
         ]
-        [ paragraph None [] [ text "signupですわ" ]
+        [ logo
+        , column Card
+            [ padding 20
+            , spacingXY 10 14
+            , width <| percent 90
+            , maxWidth <| px 450
+            , height <| fill 1
+            ]
+            [ inputText Input
+                [ placeholder "User Name"
+                , onInput (\name -> SetSignupForm { signupForm | name = name })
+                , padding 5
+                ]
+                signupForm.name
+            , inputText Input
+                [ placeholder "Email Address"
+                , onInput (\email -> SetSignupForm { signupForm | email = email })
+                , padding 5
+                ]
+                signupForm.email
+            , inputPassword Input
+                [ placeholder "Password"
+                , onInput (\password -> SetSignupForm { signupForm | password = password })
+                , padding 5
+                ]
+                signupForm.password
+            , button <|
+                el Button
+                    [ height <| px 40
+                    , type_ "submit"
+                    , onClick Signup
+                    ]
+                <|
+                    text "Signup"
+            ]
+        , paragraph None
+            [ spacing 10 ]
+            [ paragraph None [] [ link "#/login" <| text "Login" ]
+            ]
         ]
 
 
@@ -79,7 +116,7 @@ loginElement { loginForm } =
                 loginForm.name
             , inputPassword Input
                 [ placeholder "Password"
-                , onInput (\password -> SetLoginForm { loginForm | password = password |> log "おかしくね" })
+                , onInput (\password -> SetLoginForm { loginForm | password = password })
                 , padding 5
                 ]
                 loginForm.password

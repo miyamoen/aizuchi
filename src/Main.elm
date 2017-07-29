@@ -18,18 +18,30 @@ initialModel =
     { route = TopRoute
     , apiUri = "http://localhost:3009"
     , identity = Nothing
-    , signupForm =
-        { errors = []
-        , name = ""
-        , email = ""
-        , password = ""
-        }
-    , loginForm =
-        { errors = []
-        , name = ""
-        , password = ""
-        }
+    , signupForm = initialSignupForm
+    , loginForm = initialLoginForm
     , boards = []
+    }
+
+
+initialSignupForm : SignupForm
+initialSignupForm =
+    { name = ""
+    , nameErrors = []
+    , email = ""
+    , emailErrors = []
+    , password = ""
+    , passwordErrors = []
+    }
+
+
+initialLoginForm : LoginForm
+initialLoginForm =
+    { error = Nothing
+    , name = ""
+    , nameErrors = []
+    , password = ""
+    , passwordErrors = []
     }
 
 
@@ -75,33 +87,38 @@ update msg model =
         Logout ->
             model => [ Api.logout model.apiUri ]
 
-        SignupResult [] ->
-            model => [ moveTo LoginRoute ]
-
-        SignupResult errors ->
-            let
-                form =
-                    model.signupForm
-            in
-                { model | signupForm = { form | errors = errors } }
-                    => []
-
-        LoginResult [] ->
-            model => [ moveTo TopRoute ]
-
-        LoginResult errors ->
+        -- SignupResult (Ok ()) ->
+        --     model => [ moveTo LoginRoute ]
+        -- SignupResult (Err form) ->
+        --     { model | signupForm = form } => []
+        -- LoginResult (Ok ( name, email )) ->
+        --     { model
+        --         | identity =
+        --             Just
+        --                 { name = name
+        --                 , email = email
+        --                 , tags = []
+        --                 }
+        --     }
+        --         => []
+        -- LoginResult (Err form) ->
+        --     { model | loginForm = form } => []
+        OkSignup ( name, email ) ->
             let
                 form =
                     model.loginForm
+
+                form_ =
+                    { form | name = name, password = model.signupForm.password }
             in
-                { model | loginForm = { form | errors = errors } }
-                    => []
+                { model | loginForm = form_ } => [ moveTo LoginRoute ]
 
-        LogoutResult [] ->
+        OkLogin ( name, email ) ->
+            { model | identity = Just { name = name, email = email, tags = [] } }
+                => [ moveTo TopRoute ]
+
+        OkLogout ->
             model => [ moveTo LoginRoute ]
-
-        LogoutResult errors ->
-            crash ("Failed in Logout : " ++ toString errors)
 
         SetSignupForm form ->
             { model | signupForm = form } => []
@@ -109,17 +126,18 @@ update msg model =
         SetLoginForm form ->
             { model | loginForm = form } => []
 
-        GetBoards (Ok boards) ->
+        GetBoards boards ->
             { model | boards = boards |> log "ぼーどだよ" } => []
 
-        GetBoards (Err (BadStatus { status })) ->
-            if status.code == 401 then
-                model => [ moveTo LoginRoute ]
-            else
-                model => []
+        Unauthenticated ->
+            { model | identity = Nothing } => [ moveTo LoginRoute ]
 
-        GetBoards (Err _) ->
-            model => []
+        NoHandle message ->
+            let
+                _ =
+                    log "Not Handle :" message
+            in
+                model => []
 
 
 

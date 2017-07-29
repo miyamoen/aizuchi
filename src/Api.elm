@@ -2,8 +2,9 @@ module Api exposing (..)
 
 import Http exposing (Error(..), Response, expectJson, expectString, expectStringResponse)
 import HttpBuilder exposing (..)
-import Json.Decode exposing (int, string, float, list, Decoder)
-import Json.Decode.Pipeline exposing (decode, required, optional, hardcoded)
+import Json.Encode as Encode exposing (Value)
+import Json.Decode as Decode exposing (int, string, float, list, oneOf, Decoder, decodeString)
+import Json.Decode.Pipeline exposing (decode, resolve, required, optional, optionalAt, hardcoded)
 import Types exposing (..)
 import Rocket exposing ((=>))
 import Debug exposing (log, crash)
@@ -43,109 +44,128 @@ getBoards domain =
                 ]
             |> withCredentials
             |> withExpect (expectJson decoder)
-            |> send GetBoards
+            |> send (errorHandler GetBoards (Decode.fail "Failed always"))
+
+
+identityDecoder : Decoder ( String, String )
+identityDecoder =
+    decode (,)
+        |> required "name" string
+        |> required "email" string
 
 
 signup : String -> SignupForm -> Cmd Msg
 signup domain form =
     let
-        handler : Response String -> Result String (List String)
-        handler { url, status, headers, body } =
-            case status.code of
-                200 ->
-                    Ok [ "Signup Failed" ]
-
-                302 ->
-                    Ok []
-
-                _ ->
-                    Err "Unexpected Status Code"
+        failDecoder : Decoder Msg
+        failDecoder =
+            decode
+                (\( name, email, password ) ->
+                    { form
+                        | nameErrors = name
+                        , emailErrors = email
+                        , passwordErrors = password
+                    }
+                )
+                |> required
+                    "message"
+                    (decode (,,)
+                        |> optional "name" (list string) []
+                        |> optional "email" (list string) []
+                        |> optional "password" (list string) []
+                    )
+                |> Decode.map SetSignupForm
     in
-        post (domain ++ "/signup")
-            |> withHeader "Content-Type" "application/x-www-form-urlencoded"
+        post (domain ++ "/api/signup")
+            |> withHeader "Accept" "application/json"
             |> withCredentials
-            |> withUrlEncodedBody (transformSignupForm form)
-            |> withExpect (expectStringResponse handler)
-            |> send (errorToMessages >> SignupResult)
+            |> withJsonBody (transformSignupForm form)
+            |> withExpect (expectJson identityDecoder)
+            |> send (errorHandler OkSignup failDecoder)
 
 
 login : String -> LoginForm -> Cmd Msg
 login domain form =
     let
-        handler : Response String -> Result String (List String)
-        handler ({ url, status, headers, body } as res) =
-            let
-                re =
-                    log "なんふぁ" res
-            in
-                case status.code of
-                    200 ->
-                        Ok []
-
-                    302 ->
-                        Ok []
-
-                    _ ->
-                        Err "Unexpected Status Code"
+        failDecoder : Decoder Msg
+        failDecoder =
+            oneOf
+                [ decode (\error -> { form | error = Just error })
+                    |> required "message" string
+                    |> Decode.map SetLoginForm
+                , decode
+                    (\( name, password ) ->
+                        { form
+                            | nameErrors = name
+                            , passwordErrors = password
+                        }
+                    )
+                    |> required
+                        "message"
+                        (decode (,)
+                            |> optional "name" (list string) []
+                            |> optional "password" (list string) []
+                        )
+                    |> Decode.map SetLoginForm
+                ]
     in
-        post (domain ++ "/login")
-            |> withHeader "Content-Type" "application/x-www-form-urlencoded"
+        post (domain ++ "/api/login")
+            |> withHeader "Accept" "application/json"
             |> withCredentials
-            |> withUrlEncodedBody (transformLoginForm form)
-            |> withExpect (expectStringResponse handler)
-            |> send (errorToMessages >> LoginResult)
+            |> withJsonBody (transformLoginForm form)
+            |> withExpect (expectJson identityDecoder)
+            |> send (errorHandler OkLogin failDecoder)
 
 
 logout : String -> Cmd Msg
 logout domain =
-    let
-        handler : Response String -> Result String (List String)
-        handler { url, status, headers, body } =
-            case status.code of
-                302 ->
-                    Ok []
-
-                _ ->
-                    Err "Unexpected Status Code"
-    in
-        get (domain ++ "/logout")
-            |> withCredentials
-            |> withExpect (expectStringResponse handler)
-            |> send (errorToMessages >> LogoutResult)
+    delete (domain ++ "/api/login")
+        |> withCredentials
+        |> send (errorHandler (always OkLogout) (Decode.fail "Failed always"))
 
 
-errorToMessages : Result Error (List String) -> List String
-errorToMessages res =
+errorHandler : (a -> Msg) -> Decoder Msg -> Result Error a -> Msg
+errorHandler tagger decoder res =
     case res of
-        Ok msgs ->
-            msgs
+        Ok a ->
+            tagger a
 
         Err (BadUrl msg) ->
-            [ "Bad url : " ++ msg ]
+            NoHandle <| "Bad url : " ++ msg
 
         Err Timeout ->
-            [ "Timeout" ]
+            NoHandle "Timeout"
 
         Err NetworkError ->
-            [ "Network Error" ]
+            NoHandle "Network Error"
 
-        Err (BadStatus { status }) ->
-            [ "Bad status : " ++ toString status.code ++ " " ++ status.message ]
+        Err (BadStatus { status, body }) ->
+            case ( status.code, decodeString decoder body ) of
+                ( _, Ok msg ) ->
+                    msg
+
+                ( 401, _ ) ->
+                    Unauthenticated
+
+                _ ->
+                    NoHandle <| "Bad status : " ++ toString status.code ++ " " ++ status.message
 
         Err (BadPayload msg { body }) ->
-            [ msg, "Bad body :" ++ body ]
+            NoHandle <| "Bad body : " ++ body ++ "\n" ++ msg
 
 
-transformSignupForm : SignupForm -> List ( String, String )
+transformSignupForm : SignupForm -> Value
 transformSignupForm { name, email, password } =
-    [ ( "user/name", name )
-    , ( "user/email", email )
-    , ( "user/password", password )
-    ]
+    Encode.object
+        [ ( "user/name", Encode.string name )
+        , ( "user/email", Encode.string email )
+        , ( "user/password", Encode.string password )
+        ]
 
 
-transformLoginForm : LoginForm -> List ( String, String )
+transformLoginForm : LoginForm -> Value
 transformLoginForm { name, password } =
-    [ ( "username", name )
-    , ( "password", password )
-    ]
+    Encode.object
+        [ ( "user/name", Encode.string name )
+        , ( "user/password", Encode.string password )
+        ]
