@@ -13,9 +13,10 @@ import Color exposing (Color)
 type Styles
     = None
     | Logo
-    | Card
+    | FormCard
+    | BoardCard
+    | BoardCardHeader
     | Button
-    | HairLine
     | Input
 
 
@@ -28,13 +29,38 @@ stylesheet =
             , Font.justifyAll
             , Font.weight 8
             ]
-        , style Card
+        , style FormCard
             [ shadows
                 [ Shadow.box { shadow | offset = ( 0, 2 ), blur = 3 }
                 , Shadow.box { shadow | blur = 1 }
                 ]
             ]
-        , style HairLine [ Color.background colors.hairLine ]
+        , style BoardCard
+            [ shadows
+                [ Shadow.box { shadow | offset = ( 0, 2 ), blur = 3 }
+                , Shadow.box { shadow | blur = 1 }
+                ]
+            , Font.alignLeft
+            , Font.lineHeight 1.4
+            , Font.letterSpacing 1
+            , Style.cursor "pointer"
+            , Transition.all
+            , hover
+                [ Style.translate 0 -2 0
+                , Style.shadows
+                    [ Shadow.box { shadow | offset = ( 0, 4 ), blur = 4 }
+                    , Shadow.box { shadow | blur = 8, size = 1 }
+                    ]
+                ]
+            ]
+        , style BoardCardHeader
+            [ shadows
+                [ Shadow.box { shadow | offset = ( 0, 1 ), blur = 2 }
+                ]
+            , Font.size 20
+            , Font.weight 400
+            , Font.alignLeft
+            ]
         , style Button
             [ Color.background primary.main
             , Color.text colors.white

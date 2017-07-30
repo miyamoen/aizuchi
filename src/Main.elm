@@ -21,6 +21,7 @@ initialModel =
     , signupForm = initialSignupForm
     , loginForm = initialLoginForm
     , boards = []
+    , threads = []
     }
 
 
@@ -59,6 +60,16 @@ init location =
         model => initialCmds ++ cmds
 
 
+b : Board
+b =
+    { id = 17592186045426
+    , name = "default"
+    , description = "Default board"
+    , threads = []
+    , tags = []
+    }
+
+
 
 ---- UPDATE ----
 
@@ -66,17 +77,20 @@ init location =
 update : Msg -> Model -> ( Model, List (Cmd Msg) )
 update msg model =
     case msg of
-        SetRoute TopRoute ->
-            { model | route = TopRoute } => [ Api.getBoards model.apiUri ]
-
         MoveTo route ->
             model => [ moveTo route ]
+
+        SetRoute TopRoute ->
+            { model | route = TopRoute }
+                => [ Api.getBoards model.apiUri ]
 
         SetRoute SignupRoute ->
             { model | route = SignupRoute } => []
 
         SetRoute LoginRoute ->
             { model | route = LoginRoute } => []
+
+        SetRoute( BoardRoute id) ->
 
         Signup ->
             model => [ Api.signup model.apiUri model.signupForm ]

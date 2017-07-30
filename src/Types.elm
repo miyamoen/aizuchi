@@ -1,7 +1,7 @@
 module Types exposing (..)
 
-import Http exposing (Error(..))
 import Time.DateTime as DateTime exposing (DateTime, DateTimeDelta)
+import Debug exposing (log, crash)
 
 
 ---- Main ----
@@ -14,6 +14,7 @@ type alias Model =
     , signupForm : SignupForm
     , loginForm : LoginForm
     , boards : List Board
+    , threads : List Thread
     }
 
 
@@ -21,6 +22,7 @@ type Route
     = TopRoute
     | SignupRoute
     | LoginRoute
+    | BoardRoute Id
 
 
 type alias SignupForm =
@@ -46,38 +48,43 @@ type alias LoginForm =
 ---- Backchanneling Model ----
 
 
+type alias Id =
+    Int
+
+
 type alias User =
     { name : String
     , email : String
-    , tags : List Tag
+    , tags : List Id
     }
 
 
 type alias Board =
-    { id : Int
+    { id : Id
     , name : String
     , description : String
-    , threads : List Thread
-    , tags : List Tag
+    , threads : List Id
+    , tags : List Id
     }
 
 
 type alias Thread =
-    { title : String
-    , comments : List Comment
+    { id : Id
+    , title : String
+    , comments : List Id
     , since : DateTime
     , lastUpdated : DateTime
     , commentCount : Int -- 'resnum' in back-channeling
-    , tags : List Tag
+    , tags : List Id
     }
 
 
 type alias Comment =
-    { content : String
+    { id : Id
+    , content : String
     , postedAt : DateTime
     , postedBy : Maybe User
     , format : Format
-    , id : Int
     , index : Int -- 'no' in back-channeling
     }
 
@@ -88,6 +95,7 @@ type alias Tag =
     , isPrivate : Bool
     , prioity : Int
     , color : TagColors
+    , owners : List Id
     }
 
 
@@ -120,11 +128,9 @@ type Msg
     | MoveTo Route
     | Signup
     | OkSignup ( String, String )
-      -- | SignupResult (Result SignupForm ())
     | SetSignupForm SignupForm
     | Login
     | OkLogin ( String, String )
-      -- | LoginResult (Result LoginForm ( String, String ))
     | SetLoginForm LoginForm
     | Logout
     | OkLogout

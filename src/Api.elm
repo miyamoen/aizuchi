@@ -24,6 +24,12 @@ import Debug exposing (log, crash)
 -- [{id: 17592186045426, name: "default", description: "Default board"}]
 
 
+id : Decoder Id
+id =
+    decode identity
+        |> required "id" int
+
+
 getBoards : String -> Cmd Msg
 getBoards domain =
     let
@@ -33,8 +39,8 @@ getBoards domain =
                 |> required "id" int
                 |> required "name" string
                 |> optional "description" string ""
-                |> hardcoded []
-                |> hardcoded []
+                |> optional "threads" (list id) []
+                |> optional "tags" (list id) []
                 |> list
     in
         get (domain ++ "/api/boards")
@@ -44,7 +50,7 @@ getBoards domain =
                 ]
             |> withCredentials
             |> withExpect (expectJson decoder)
-            |> send (errorHandler GetBoards (Decode.fail "Failed always"))
+            |> send (errorHandler GetBoards <| Decode.fail "Failed always")
 
 
 identityDecoder : Decoder ( String, String )
