@@ -32,20 +32,20 @@ rootElement ({ route } as model) =
         LoginRoute ->
             Page.login model
 
-        BoardRoute id ->
-            board model id
+        BoardRoute name ->
+            board model name
 
 
-board : Model -> Id -> Element Styles variation msg
-board { boards } id =
+board : Model -> String -> Element Styles variation Msg
+board { boards } name =
     let
         maybeBoard =
-            List.filter (.id >> (==) id) boards
+            List.filter (.name >> (==) name) boards
                 |> List.head
     in
         case maybeBoard of
             Nothing ->
-                crash "BoardRoute idのidが無効"
+                crash "BoardRoute nameのnameが無効"
 
             Just board ->
                 boardCard board
@@ -75,7 +75,7 @@ top model =
 --     }
 
 
-boardCard : Board -> Element Styles variation msg
+boardCard : Board -> Element Styles variation Msg
 boardCard ({ description } as board) =
     column BoardCard
         [ width <| percent 95
@@ -83,6 +83,7 @@ boardCard ({ description } as board) =
         , minHeight <| px 100
         , height <| fill 1
         , maxHeight <| px 300
+        , onClick <| MoveTo <| BoardRoute <| board.name
         ]
         [ boardCardHeader board
         , paragraph None [ padding 24, yScrollbar ] [ text description ]

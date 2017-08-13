@@ -6,7 +6,6 @@ import Api
 import Navigation exposing (Location)
 import UrlParser exposing (..)
 import Rocket exposing (..)
-import Http exposing (Error(..))
 import Debug exposing (log, crash)
 
 
@@ -60,17 +59,15 @@ init location =
         model => initialCmds ++ cmds
 
 
-b : Board
-b =
-    { id = 17592186045426
-    , name = "default"
-    , description = "Default board"
-    , threads = []
-    , tags = []
-    }
 
-
-
+-- b : Board
+-- b =
+--     { id = 17592186045426
+--     , name = "default"
+--     , description = "Default board"
+--     , threads = []
+--     , tags = []
+--     }
 ---- UPDATE ----
 
 
@@ -90,7 +87,9 @@ update msg model =
         SetRoute LoginRoute ->
             { model | route = LoginRoute } => []
 
-        SetRoute( BoardRoute id) ->
+        SetRoute (BoardRoute name) ->
+            { model | route = BoardRoute name }
+                => [ Api.getBoard model.apiUri name ]
 
         Signup ->
             model => [ Api.signup model.apiUri model.signupForm ]
@@ -141,7 +140,21 @@ update msg model =
             { model | loginForm = form } => []
 
         GetBoards boards ->
-            { model | boards = boards |> log "ぼーどだよ" } => []
+            { model | boards = boards |> log "ぼーどsだよ" } => []
+
+        GetBoard board ->
+            { model
+                | boards =
+                    List.map
+                        (\old ->
+                            if old.id == board.id then
+                                log "ぼーどだよ" board
+                            else
+                                old
+                        )
+                        model.boards
+            }
+                => []
 
         Unauthenticated ->
             { model | identity = Nothing } => [ moveTo LoginRoute ]
@@ -172,6 +185,7 @@ router location =
     oneOf
         [ map SignupRoute <| s "signup"
         , map LoginRoute <| s "login"
+        , map BoardRoute <| s "board" </> string
         ]
         |> flip parseHash location
         |> Maybe.withDefault TopRoute
@@ -189,6 +203,9 @@ moveTo route =
 
         LoginRoute ->
             "login"
+
+        BoardRoute name ->
+            "board/" ++ name
     )
         |> (++) "./#/"
         |> Navigation.newUrl

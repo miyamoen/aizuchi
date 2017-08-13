@@ -22,7 +22,7 @@ type Route
     = TopRoute
     | SignupRoute
     | LoginRoute
-    | BoardRoute Id
+    | BoardRoute String
 
 
 type alias SignupForm =
@@ -135,6 +135,7 @@ type Msg
     | Logout
     | OkLogout
     | GetBoards (List Board)
+    | GetBoard Board
       -- | GetIdentity ( String, String )
     | Unauthenticated
     | NoHandle String

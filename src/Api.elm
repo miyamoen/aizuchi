@@ -53,6 +53,28 @@ getBoards domain =
             |> send (errorHandler GetBoards <| Decode.fail "Failed always")
 
 
+getBoard : String -> String -> Cmd Msg
+getBoard domain name =
+    let
+        decoder : Decoder Board
+        decoder =
+            decode Board
+                |> required "id" int
+                |> required "name" string
+                |> optional "description" string ""
+                |> optional "threads" (list id) []
+                |> optional "tags" (list id) []
+    in
+        get (domain ++ "/api/board/" ++ name)
+            |> withHeaders
+                [ "Content-Type" => "application/json"
+                , "Accept" => "application/json"
+                ]
+            |> withCredentials
+            |> withExpect (expectJson decoder)
+            |> send (errorHandler GetBoard <| Decode.fail "Failed always")
+
+
 identityDecoder : Decoder ( String, String )
 identityDecoder =
     decode (,)
