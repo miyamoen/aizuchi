@@ -45,7 +45,7 @@ board { boards } name =
     in
         case maybeBoard of
             Nothing ->
-                crash "BoardRoute nameのnameが無効"
+                paragraph None [] [ text "とってくるよ～" ]
 
             Just board ->
                 boardCard board

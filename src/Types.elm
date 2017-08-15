@@ -135,7 +135,7 @@ type Msg
     | Logout
     | OkLogout
     | GetBoards (List Board)
-    | GetBoard Board
+    | GetBoard ( Board, List Thread )
       -- | GetIdentity ( String, String )
     | Unauthenticated
     | NoHandle String

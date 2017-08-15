@@ -142,17 +142,13 @@ update msg model =
         GetBoards boards ->
             { model | boards = boards |> log "ぼーどsだよ" } => []
 
-        GetBoard board ->
+        GetBoard ( new, threads ) ->
             { model
                 | boards =
-                    List.map
-                        (\old ->
-                            if old.id == board.id then
-                                log "ぼーどだよ" board
-                            else
-                                old
-                        )
-                        model.boards
+                    model.boards
+                        |> List.filter (\board -> board.id /= new.id)
+                        |> (::) new
+                , threads = threads
             }
                 => []
 

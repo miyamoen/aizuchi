@@ -5,6 +5,7 @@ import HttpBuilder exposing (..)
 import Json.Encode as Encode exposing (Value)
 import Json.Decode as Decode exposing (int, string, float, list, oneOf, Decoder, decodeString)
 import Json.Decode.Pipeline exposing (decode, resolve, required, optional, optionalAt, hardcoded)
+import Time.DateTime as DateTime exposing (DateTime)
 import Types exposing (..)
 import Rocket exposing ((=>))
 import Debug exposing (log, crash)
@@ -28,6 +29,20 @@ id : Decoder Id
 id =
     decode identity
         |> required "id" int
+
+
+dateTime : Decoder DateTime
+dateTime =
+    string
+        |> Decode.andThen
+            (\string ->
+                case DateTime.fromISO8601 (log "どうかしら" string) of
+                    Ok dateTime ->
+                        Decode.succeed dateTime
+
+                    Err _ ->
+                        Decode.fail "not ISO8601 date time format."
+            )
 
 
 getBoards : String -> Cmd Msg
@@ -56,14 +71,29 @@ getBoards domain =
 getBoard : String -> String -> Cmd Msg
 getBoard domain name =
     let
-        decoder : Decoder Board
-        decoder =
+        board : Decoder Board
+        board =
             decode Board
                 |> required "id" int
                 |> required "name" string
                 |> optional "description" string ""
                 |> optional "threads" (list id) []
                 |> optional "tags" (list id) []
+
+        thread : Decoder Thread
+        thread =
+            decode Thread
+                |> required "id" int
+                |> required "title" string
+                |> hardcoded []
+                |> required "since" dateTime
+                |> required "last-updated" dateTime
+                |> required "resnum" int
+                |> optional "tags" (list id) []
+
+        decoder : Decoder ( Board, List Thread )
+        decoder =
+            Decode.map2 (,) board (list thread)
     in
         get (domain ++ "/api/board/" ++ name)
             |> withHeaders
