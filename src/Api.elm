@@ -93,7 +93,7 @@ getBoard domain name =
 
         decoder : Decoder ( Board, List Thread )
         decoder =
-            Decode.map2 (,) board (list thread)
+            Decode.map2 (,) board (decode identity |> required "threads" (list thread))
     in
         get (domain ++ "/api/board/" ++ name)
             |> withHeaders

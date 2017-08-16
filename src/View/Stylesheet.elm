@@ -18,6 +18,7 @@ type Styles
     | BoardCardHeader
     | Button
     | Input
+    | Navbar
 
 
 stylesheet : StyleSheet Styles variation
@@ -91,6 +92,11 @@ stylesheet =
             , Border.rounded 3
             , Border.solid
             , Color.border colors.border
+            ]
+        , style Navbar
+            [ Font.size 30
+            , Font.justifyAll
+            , Font.weight 5
             ]
         ]
 

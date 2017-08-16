@@ -22,18 +22,22 @@ view model =
 
 rootElement : Model -> Element Styles variation Msg
 rootElement ({ route } as model) =
-    case route of
-        TopRoute ->
-            top model
+    column None
+        [ height <| fill 1 ]
+        [ navbar model
+        , case route of
+            TopRoute ->
+                top model
 
-        SignupRoute ->
-            Page.signup model
+            SignupRoute ->
+                Page.signup model
 
-        LoginRoute ->
-            Page.login model
+            LoginRoute ->
+                Page.login model
 
-        BoardRoute name ->
-            board model name
+            BoardRoute name ->
+                board model name
+        ]
 
 
 board : Model -> String -> Element Styles variation Msg
