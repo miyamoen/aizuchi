@@ -1,6 +1,7 @@
 module View exposing (..)
 
 import Types exposing (..)
+import Time.DateTime as DateTime exposing (DateTime, DateTimeDelta)
 import View.Stylesheet as Stylesheet exposing (Styles(..), stylesheet)
 import View.Form as Form
 import View.Common as Common exposing (..)
@@ -23,7 +24,9 @@ view model =
 rootElement : Model -> Element Styles variation Msg
 rootElement ({ route } as model) =
     column None
-        [ height <| fill 1 ]
+        [ height <| fill 1
+        , width <| fill 1
+        ]
         [ navbar model
         , case route of
             TopRoute ->
@@ -41,10 +44,14 @@ rootElement ({ route } as model) =
 
 
 board : Model -> String -> Element Styles variation Msg
-board { boards } name =
+board { boards, threads } name =
     let
         maybeBoard =
             List.filter (.name >> (==) name) boards
+                |> List.head
+
+        getThread id =
+            List.filter (.id >> (==) id) threads
                 |> List.head
     in
         case maybeBoard of
@@ -52,7 +59,9 @@ board { boards } name =
                 paragraph None [] [ text "とってくるよ～" ]
 
             Just board ->
-                boardCard board
+                board.threads
+                    |> List.filterMap getThread
+                    |> threadList
 
 
 top : Model -> Element Styles variation Msg
@@ -79,9 +88,44 @@ top model =
 --     }
 
 
+threadList : List Thread -> Element Styles variation Msg
+threadList items =
+    column None
+        [ spacing 1
+        , width <| fill 1
+        ]
+        (List.map threadCard items)
+
+
+threadCard : Thread -> Element Styles variation Msg
+threadCard thread =
+    column Card
+        [ width <| percent 95
+
+        -- , maxWidth <| px 300
+        , minHeight <| px 100
+        , height <| fill 1
+        , maxHeight <| px 300
+        ]
+        [ threadCardHeader thread ]
+
+
+threadCardHeader : Thread -> Element Styles variation msg
+threadCardHeader { id, title, lastUpdated, commentCount } =
+    row CardHeader
+        [ padding 12
+        , justify
+        ]
+        [ paragraph None [] [ text title ]
+        , paragraph None [] [ text <| toString id ]
+        , paragraph None [] [ text <| DateTime.toISO8601 lastUpdated ]
+        , tag <| toString <| commentCount
+        ]
+
+
 boardCard : Board -> Element Styles variation Msg
 boardCard ({ description } as board) =
-    column BoardCard
+    column Card
         [ width <| percent 95
         , maxWidth <| px 300
         , minHeight <| px 100
@@ -96,10 +140,10 @@ boardCard ({ description } as board) =
 
 boardCardHeader : Board -> Element Styles variation msg
 boardCardHeader { name, threads } =
-    row BoardCardHeader
+    row CardHeader
         [ padding 12
         , justify
         ]
         [ paragraph None [] [ text name ]
-        , paragraph None [] [ text <| toString (List.length threads) ]
+        , tag <| toString <| List.length threads
         ]

@@ -14,16 +14,17 @@ type Styles
     = None
     | Logo
     | FormCard
-    | BoardCard
-    | BoardCardHeader
+    | Card
+    | CardHeader
     | Button
     | Input
     | Navbar
+    | Tag
 
 
 stylesheet : StyleSheet Styles variation
 stylesheet =
-    Style.stylesheet
+    Style.styleSheet
         [ style None []
         , style Logo
             [ Font.size 50
@@ -36,7 +37,7 @@ stylesheet =
                 , Shadow.box { shadow | blur = 1 }
                 ]
             ]
-        , style BoardCard
+        , style Card
             [ shadows
                 [ Shadow.box { shadow | offset = ( 0, 2 ), blur = 3 }
                 , Shadow.box { shadow | blur = 1 }
@@ -47,14 +48,14 @@ stylesheet =
             , Style.cursor "pointer"
             , Transition.all
             , hover
-                [ Style.translate 0 -2 0
+                [ Style.translate 0 -1 0
                 , Style.shadows
                     [ Shadow.box { shadow | offset = ( 0, 4 ), blur = 4 }
                     , Shadow.box { shadow | blur = 8, size = 1 }
                     ]
                 ]
             ]
-        , style BoardCardHeader
+        , style CardHeader
             [ shadows
                 [ Shadow.box { shadow | offset = ( 0, 1 ), blur = 2 }
                 ]
@@ -97,6 +98,14 @@ stylesheet =
             [ Font.size 30
             , Font.justifyAll
             , Font.weight 5
+            ]
+        , style Tag
+            [ Font.size 15
+            , Font.center
+            , Font.lineHeight 1.5
+            , Color.text colors.white
+            , Color.background primary.main
+            , Border.rounded 10
             ]
         ]
 

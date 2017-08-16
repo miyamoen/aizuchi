@@ -24,3 +24,14 @@ navbar model =
         [ paragraph Logo [ onClick (MoveTo TopRoute) ] [ text "Aizuchi" ]
         , paragraph Logo [ onClick Logout ] [ text "Logout" ]
         ]
+
+
+tag : String -> Element Styles variation msg
+tag label =
+    el Stylesheet.Tag
+        [ center
+        , verticalCenter
+        , width <| px <| toFloat <| String.length label * 30
+        , paddingXY 5 0
+        ]
+        (text label)
