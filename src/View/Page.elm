@@ -1,7 +1,7 @@
 module View.Page exposing (..)
 
 import Types exposing (..)
-import View.Stylesheet as Stylesheet exposing (Styles(..), stylesheet)
+import View.StyleSheet as StyleSheet exposing (Styles(..))
 import View.Form as Form
 import View.Common as Common exposing (..)
 import View.Layout as Layout

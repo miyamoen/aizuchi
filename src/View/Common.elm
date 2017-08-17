@@ -1,7 +1,7 @@
 module View.Common exposing (..)
 
 import Types exposing (..)
-import View.Stylesheet as Stylesheet exposing (Styles(..))
+import View.StyleSheet as StyleSheet exposing (Styles(..))
 import Element exposing (..)
 import Element.Events exposing (..)
 import Element.Attributes as Attrs exposing (..)
@@ -28,10 +28,11 @@ navbar model =
 
 tag : String -> Element Styles variation msg
 tag label =
-    el Stylesheet.Tag
+    el StyleSheet.Tag
         [ center
         , verticalCenter
         , width <| px <| toFloat <| String.length label * 30
         , paddingXY 5 0
         ]
-        (text label)
+    <|
+        paragraph Font7 [] [ text label ]

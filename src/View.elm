@@ -2,7 +2,7 @@ module View exposing (..)
 
 import Types exposing (..)
 import Time.DateTime as DateTime exposing (DateTime, DateTimeDelta)
-import View.Stylesheet as Stylesheet exposing (Styles(..), stylesheet)
+import View.StyleSheet as StyleSheet exposing (Styles(..), styleSheet)
 import View.Form as Form
 import View.Common as Common exposing (..)
 import View.Layout as Layout
@@ -18,7 +18,7 @@ import Debug exposing (log, crash)
 view : Model -> Html Msg
 view model =
     rootElement model
-        |> Element.viewport stylesheet
+        |> Element.viewport styleSheet
 
 
 rootElement : Model -> Element Styles variation Msg
@@ -93,6 +93,7 @@ threadList items =
     column None
         [ spacing 1
         , width <| fill 1
+        , center
         ]
         (List.map threadCard items)
 

@@ -1,7 +1,7 @@
 module View.Layout exposing (..)
 
 import View.Common exposing (..)
-import View.Stylesheet as Stylesheet exposing (Styles(..))
+import View.StyleSheet as StyleSheet exposing (Styles(..))
 import Element exposing (..)
 import Element.Attributes as Attrs exposing (..)
 

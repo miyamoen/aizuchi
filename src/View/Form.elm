@@ -3,7 +3,7 @@ module View.Form exposing (..)
 import Types exposing (..)
 import View.Common exposing (..)
 import View.Layout as Layout
-import View.Stylesheet as Stylesheet exposing (Styles(..))
+import View.StyleSheet as StyleSheet exposing (Styles(..))
 import Element exposing (..)
 import Element.Attributes as Attrs exposing (..)
 import Element.Events exposing (onInput, on, targetValue, onClick)
