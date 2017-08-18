@@ -43,12 +43,30 @@ rootElement ({ route } as model) =
 
             BoardRoute name ->
                 board model name
+
+            ThreadRoute id ->
+                thread model id
         ]
 
 
 notFound : Model -> Element Styles variation Msg
 notFound model =
     paragraph None [] [ text "このRouteは知らないRouteです" ]
+
+
+thread : Model -> Id -> Element Styles variation Msg
+thread { threads } id =
+    let
+        maybeThread =
+            List.filter (.id >> (==) id) threads
+                |> List.head
+    in
+        case maybeThread of
+            Just thread ->
+                paragraph None [] [ text <| toString thread ]
+
+            Nothing ->
+                paragraph None [] [ text "Threadとってくるよ～" ]
 
 
 board : Model -> String -> Element Styles variation Msg
@@ -64,7 +82,7 @@ board { boards, threads } name =
     in
         case maybeBoard of
             Nothing ->
-                paragraph None [] [ text "とってくるよ～" ]
+                paragraph None [] [ text "Boardとってくるよ～" ]
 
             Just board ->
                 board.threads
@@ -98,11 +116,10 @@ threadCard : Thread -> Element Styles variation Msg
 threadCard thread =
     column Card
         [ width <| percent 95
-
-        -- , maxWidth <| px 300
         , minHeight <| px 100
         , height <| fill 1
         , maxHeight <| px 300
+        , onClick <| MoveTo <| ThreadRoute thread.id
         ]
         [ threadCardHeader thread ]
 
@@ -129,7 +146,7 @@ boardCard ({ description } as board) =
         , minHeight <| px 100
         , height <| fill 1
         , maxHeight <| px 300
-        , onClick <| MoveTo <| BoardRoute <| board.name
+        , onClick <| MoveTo <| BoardRoute board.name
         ]
         [ boardCardHeader board
         , paragraph None [ padding 24, yScrollbar ] [ text description ]

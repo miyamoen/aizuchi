@@ -63,10 +63,7 @@ styleSheet =
                 ]
             ]
         , style CardHeader
-            [ shadows
-                [ Shadow.box { shadow | offset = ( 0, 1 ), blur = 1 }
-                ]
-            ]
+            [ shadows [ Shadow.box { shadow | offset = ( 0, 1 ), blur = 1 } ] ]
         , style Button
             [ Color.background primary.main
             , Color.text colors.white

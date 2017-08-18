@@ -24,6 +24,7 @@ type Route
     | SignupRoute
     | LoginRoute
     | BoardRoute String
+    | ThreadRoute Id
 
 
 type alias SignupForm =
@@ -136,7 +137,7 @@ type Msg
     | Logout
     | OkLogout
     | GetBoards (List Board)
-    | GetBoard ( Board, List Thread )
+    | GetBoard Board (List Thread)
       -- | GetIdentity ( String, String )
     | Unauthenticated
     | NoHandle String

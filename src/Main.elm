@@ -60,14 +60,6 @@ init location =
 
 
 
--- b : Board
--- b =
---     { id = 17592186045426
---     , name = "default"
---     , description = "Default board"
---     , threads = []
---     , tags = []
---     }
 ---- UPDATE ----
 
 
@@ -94,6 +86,10 @@ update msg model =
             { model | route = BoardRoute name }
                 => [ Api.getBoard model.apiUri name ]
 
+        SetRoute (ThreadRoute id) ->
+            { model | route = ThreadRoute id }
+                => []
+
         Signup ->
             model => [ Api.signup model.apiUri model.signupForm ]
 
@@ -103,22 +99,6 @@ update msg model =
         Logout ->
             model => [ Api.logout model.apiUri ]
 
-        -- SignupResult (Ok ()) ->
-        --     model => [ moveTo LoginRoute ]
-        -- SignupResult (Err form) ->
-        --     { model | signupForm = form } => []
-        -- LoginResult (Ok ( name, email )) ->
-        --     { model
-        --         | identity =
-        --             Just
-        --                 { name = name
-        --                 , email = email
-        --                 , tags = []
-        --                 }
-        --     }
-        --         => []
-        -- LoginResult (Err form) ->
-        --     { model | loginForm = form } => []
         OkSignup ( name, email ) ->
             let
                 form =
@@ -145,7 +125,7 @@ update msg model =
         GetBoards boards ->
             { model | boards = boards |> log "ぼーどsだよ" } => []
 
-        GetBoard ( new, threads ) ->
+        GetBoard new threads ->
             { model
                 | boards =
                     model.boards
@@ -185,6 +165,7 @@ router location =
         [ map SignupRoute <| s "signup"
         , map LoginRoute <| s "login"
         , map BoardRoute <| s "board" </> string
+        , map ThreadRoute <| s "thread" </> int
         , map TopRoute <| s ""
         ]
         |> flip parseHash location
@@ -209,6 +190,9 @@ moveTo route =
 
         BoardRoute name ->
             "board/" ++ name
+
+        ThreadRoute id ->
+            "thread/" ++ toString id
     )
         |> (++) "./#/"
         |> Navigation.newUrl
