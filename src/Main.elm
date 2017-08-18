@@ -77,6 +77,9 @@ update msg model =
         MoveTo route ->
             model => [ moveTo route ]
 
+        SetRoute NotFoundRoute ->
+            { model | route = NotFoundRoute } => []
+
         SetRoute TopRoute ->
             { model | route = TopRoute }
                 => [ Api.getBoards model.apiUri ]
@@ -182,15 +185,19 @@ router location =
         [ map SignupRoute <| s "signup"
         , map LoginRoute <| s "login"
         , map BoardRoute <| s "board" </> string
+        , map TopRoute <| s ""
         ]
         |> flip parseHash location
-        |> Maybe.withDefault TopRoute
+        |> Maybe.withDefault NotFoundRoute
         |> SetRoute
 
 
 moveTo : Route -> Cmd msg
 moveTo route =
     (case route of
+        NotFoundRoute ->
+            crash "notFoundページに移動はできません"
+
         TopRoute ->
             ""
 

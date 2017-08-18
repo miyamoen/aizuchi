@@ -29,6 +29,9 @@ rootElement ({ route } as model) =
         ]
         [ navbar model
         , case route of
+            NotFoundRoute ->
+                notFound model
+
             TopRoute ->
                 top model
 
@@ -41,6 +44,11 @@ rootElement ({ route } as model) =
             BoardRoute name ->
                 board model name
         ]
+
+
+notFound : Model -> Element Styles variation Msg
+notFound model =
+    paragraph None [] [ text "このRouteは知らないRouteです" ]
 
 
 board : Model -> String -> Element Styles variation Msg
@@ -76,18 +84,6 @@ top model =
         List.map boardCard model.boards
 
 
-
--- , height <| fill 1
--- ,
--- type alias Board =
---     { id : Int
---     , name : String
---     , description : String
---     , threads : List Thread
---     , tags : List Tag
---     }
-
-
 threadList : List Thread -> Element Styles variation Msg
 threadList items =
     column None
@@ -116,10 +112,11 @@ threadCardHeader { id, title, lastUpdated, commentCount } =
     row CardHeader
         [ padding 12
         , justify
+        , verticalCenter
         ]
-        [ paragraph None [] [ text title ]
-        , paragraph None [] [ text <| toString id ]
-        , paragraph None [] [ text <| DateTime.toISO8601 lastUpdated ]
+        [ paragraph Font3 [] [ text title ]
+        , paragraph Font7 [] [ text <| toString id ]
+        , paragraph Font5 [] [ text <| DateTime.toISO8601 lastUpdated ]
         , tag <| toString <| commentCount
         ]
 
@@ -145,6 +142,6 @@ boardCardHeader { name, threads } =
         [ padding 12
         , justify
         ]
-        [ paragraph None [] [ text name ]
+        [ paragraph Font3 [] [ text name ]
         , tag <| toString <| List.length threads
         ]

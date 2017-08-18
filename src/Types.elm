@@ -19,7 +19,8 @@ type alias Model =
 
 
 type Route
-    = TopRoute
+    = NotFoundRoute
+    | TopRoute
     | SignupRoute
     | LoginRoute
     | BoardRoute String
