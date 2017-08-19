@@ -21,6 +21,7 @@ initialModel =
     , loginForm = initialLoginForm
     , boards = []
     , threads = []
+    , comments = []
     }
 
 
@@ -88,7 +89,7 @@ update msg model =
 
         SetRoute (ThreadRoute id) ->
             { model | route = ThreadRoute id }
-                => []
+                => [ Api.getThreadComments model.apiUri id (Just 1) Nothing ]
 
         Signup ->
             model => [ Api.signup model.apiUri model.signupForm ]
@@ -123,7 +124,7 @@ update msg model =
             { model | loginForm = form } => []
 
         GetBoards boards ->
-            { model | boards = boards |> log "ぼーどsだよ" } => []
+            { model | boards = boards } => []
 
         GetBoard new threads ->
             { model
@@ -134,6 +135,9 @@ update msg model =
                 , threads = threads
             }
                 => []
+
+        GetThreadComments id comments ->
+            { model | comments = comments } => []
 
         Unauthenticated ->
             { model | identity = Nothing } => [ moveTo LoginRoute ]

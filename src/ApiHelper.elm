@@ -1,68 +1,80 @@
-module Api.Helper exposing (..)
+module ApiHelper exposing (..)
 
 import Http exposing (Error(..), Response, expectJson, expectString, expectStringResponse)
 import HttpBuilder exposing (..)
-import Json.Encode as Encode exposing (Value)
 import Json.Decode as Decode exposing (int, string, float, list, oneOf, Decoder, decodeString)
-import Json.Decode.Pipeline exposing (decode, resolve, required, optional, optionalAt, hardcoded)
-import Time.DateTime as DateTime exposing (DateTime)
 import Types exposing (..)
 import Rocket exposing ((=>))
 import Debug exposing (log, crash)
 
 
-method : (String -> RequestBuilder ()) -> String -> String -> RequestBuilder ()
-method method_ domain path =
-    method_ (domain ++ "/api/" ++ path)
+toRequestWithApiPath : String -> ApiPath -> RequestBuilder ()
+toRequestWithApiPath domain apiPath =
+    let
+        toFullPath paths =
+            [ domain, "api" ] ++ paths |> String.join "/"
+    in
+        case apiPath of
+            LoginPath ->
+                [ "login" ]
+                    |> toFullPath
+                    |> post
+
+            LogoutPath ->
+                [ "login" ]
+                    |> toFullPath
+                    |> delete
+
+            SignupPath ->
+                [ "signup" ]
+                    |> toFullPath
+                    |> post
+
+            BoardPath name ->
+                [ "board", name ]
+                    |> toFullPath
+                    |> get
+
+            BoardsPath ->
+                [ "boards" ]
+                    |> toFullPath
+                    |> get
+
+            ThreadPath id ->
+                [ "thread", toString id ]
+                    |> toFullPath
+                    |> get
+
+            ThreadCommentsPath id (Just from) (Just to) ->
+                [ "thread"
+                , toString id
+                , "comments"
+                , String.join "-" [ toString from, toString to ]
+                ]
+                    |> toFullPath
+                    |> get
+
+            ThreadCommentsPath id (Just from) Nothing ->
+                [ "thread", toString id, "comments", toString from ++ "-" ]
+                    |> toFullPath
+                    |> get
+
+            ThreadCommentsPath id Nothing (Just to) ->
+                [ "thread", toString id, "comments", "-" ++ toString to ]
+                    |> toFullPath
+                    |> get
+
+            ThreadCommentsPath id Nothing Nothing ->
+                [ "thread", toString id, "comments" ]
+                    |> toFullPath
+                    |> get
+
+
+request : String -> ApiPath -> RequestBuilder ()
+request domain apiPath =
+    toRequestWithApiPath domain apiPath
         |> withHeader "Accept" "application/json"
         |> withCredentials
-
-
-get : String -> String -> RequestBuilder ()
-get =
-    method HttpBuilder.get
-
-
-post : String -> String -> RequestBuilder ()
-post =
-    method HttpBuilder.post
-
-
-delete : String -> String -> RequestBuilder ()
-delete =
-    method HttpBuilder.delete
-
-
-put : String -> String -> RequestBuilder ()
-put =
-    method HttpBuilder.put
-
-
-id : Decoder Id
-id =
-    decode identity
-        |> required "id" int
-
-
-dateTime : Decoder DateTime
-dateTime =
-    string
-        |> Decode.andThen
-            (\string ->
-                case DateTime.fromISO8601 string of
-                    Ok dateTime ->
-                        Decode.succeed dateTime
-
-                    Err _ ->
-                        Decode.fail "Required ISO8601 date time format."
-            )
-
-
-identityDecoder : Decoder ( String, String )
-identityDecoder =
-    decode (,)
-        |> required "name" string
-        |> required "email" string
 
 
 withExpectJson : Decoder a -> RequestBuilder b -> RequestBuilder a
@@ -108,20 +120,3 @@ responseHandler errorDecoder res =
 
         Err (BadPayload msg { body }) ->
             NoHandle <| "Bad body : " ++ body ++ "\n" ++ msg
-
-
-convertSignupForm : SignupForm -> Value
-convertSignupForm { name, email, password } =
-    Encode.object
-        [ ( "user/name", Encode.string name )
-        , ( "user/email", Encode.string email )
-        , ( "user/password", Encode.string password )
-        ]
-
-
-convertLoginForm : LoginForm -> Value
-convertLoginForm { name, password } =
-    Encode.object
-        [ ( "user/name", Encode.string name )
-        , ( "user/password", Encode.string password )
-        ]

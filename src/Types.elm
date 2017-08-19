@@ -15,6 +15,7 @@ type alias Model =
     , loginForm : LoginForm
     , boards : List Board
     , threads : List Thread
+    , comments : List Comment
     }
 
 
@@ -25,6 +26,16 @@ type Route
     | LoginRoute
     | BoardRoute String
     | ThreadRoute Id
+
+
+type ApiPath
+    = LoginPath
+    | SignupPath
+    | LogoutPath
+    | BoardsPath
+    | BoardPath String
+    | ThreadPath Id
+    | ThreadCommentsPath Id (Maybe Int) (Maybe Int)
 
 
 type alias SignupForm =
@@ -85,7 +96,7 @@ type alias Comment =
     { id : Id
     , content : String
     , postedAt : DateTime
-    , postedBy : Maybe User
+    , postedBy : User
     , format : Format
     , index : Int -- 'no' in back-channeling
     }
@@ -138,6 +149,7 @@ type Msg
     | OkLogout
     | GetBoards (List Board)
     | GetBoard Board (List Thread)
+    | GetThreadComments Id (List Comment)
       -- | GetIdentity ( String, String )
     | Unauthenticated
     | NoHandle String

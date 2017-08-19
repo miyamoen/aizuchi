@@ -55,7 +55,7 @@ notFound model =
 
 
 thread : Model -> Id -> Element Styles variation Msg
-thread { threads } id =
+thread { threads, comments } id =
     let
         maybeThread =
             List.filter (.id >> (==) id) threads
@@ -67,6 +67,14 @@ thread { threads } id =
 
             Nothing ->
                 paragraph None [] [ text "Threadとってくるよ～" ]
+
+
+comment : Model -> Comment -> Element Styles variation Msg
+comment _ { content, postedAt, postedBy, format, index } =
+    row None
+        []
+        [ image ("https://flathash.com/" ++ postedBy.name) None [ width <| px 64, height <| px 64 ] empty
+        ]
 
 
 board : Model -> String -> Element Styles variation Msg

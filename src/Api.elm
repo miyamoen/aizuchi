@@ -1,76 +1,16 @@
 module Api exposing (..)
 
 import Http exposing (Error(..), Response, expectJson, expectString, expectStringResponse)
-import HttpBuilder exposing (..)
+import HttpBuilder exposing (withJsonBody)
+import ApiHelper exposing (..)
 import Json.Encode as Encode exposing (Value)
 import Json.Decode as Decode exposing (int, string, float, list, oneOf, Decoder, decodeString)
 import Json.Decode.Pipeline exposing (decode, resolve, required, optional, optionalAt, hardcoded)
+import Decoder exposing (..)
 import Time.DateTime as DateTime exposing (DateTime)
 import Types exposing (..)
 import Rocket exposing ((=>))
 import Debug exposing (log, crash)
-
-
-method : (String -> RequestBuilder ()) -> String -> String -> RequestBuilder ()
-method method_ domain path =
-    method_ (domain ++ "/api/" ++ path)
-        |> withHeader "Accept" "application/json"
-        |> withCredentials
-
-
-get : String -> String -> RequestBuilder ()
-get =
-    method HttpBuilder.get
-
-
-post : String -> String -> RequestBuilder ()
-post =
-    method HttpBuilder.post
-
-
-delete : String -> String -> RequestBuilder ()
-delete =
-    method HttpBuilder.delete
-
-
-put : String -> String -> RequestBuilder ()
-put =
-    method HttpBuilder.put
-
-
-
-{-
-   type alias Response body =
-       { url : String
-       , status : { code : Int, message : String }
-       , headers : Dict String String
-       , body : body
-       }
--}
--- ({:db/id 17592186045426
--- , :board/name "default"
--- , :board/description "Default board"})
--- [{id: 17592186045426, name: "default", description: "Default board"}]
-
-
-id : Decoder Id
-id =
-    decode identity
-        |> required "id" int
-
-
-dateTime : Decoder DateTime
-dateTime =
-    string
-        |> Decode.andThen
-            (\string ->
-                case DateTime.fromISO8601 string of
-                    Ok dateTime ->
-                        Decode.succeed dateTime
-
-                    Err _ ->
-                        Decode.fail "Required ISO8601 date time format."
-            )
 
 
 getBoards : String -> Cmd Msg
@@ -78,16 +18,10 @@ getBoards domain =
     let
         decoder : Decoder Msg
         decoder =
-            decode Board
-                |> required "id" int
-                |> required "name" string
-                |> optional "description" string ""
-                |> optional "threads" (list id) []
-                |> optional "tags" (list id) []
-                |> list
-                |> Decode.map GetBoards
+            decode GetBoards
+                |> requiredDecoder (list board)
     in
-        get domain "boards"
+        request domain BoardsPath
             |> withExpectJson decoder
             |> send
 
@@ -95,40 +29,28 @@ getBoards domain =
 getBoard : String -> String -> Cmd Msg
 getBoard domain name =
     let
-        board : Decoder Board
-        board =
-            decode Board
-                |> required "id" int
-                |> required "name" string
-                |> optional "description" string ""
-                |> optional "threads" (list id) []
-                |> optional "tags" (list id) []
-
-        thread : Decoder Thread
-        thread =
-            decode Thread
-                |> required "id" int
-                |> required "title" string
-                |> hardcoded []
-                |> required "since" dateTime
-                |> required "last-updated" dateTime
-                |> required "resnum" int
-                |> optional "tags" (list id) []
-
         decoder : Decoder Msg
         decoder =
-            Decode.map2 GetBoard board <| Decode.field "threads" (list thread)
+            decode GetBoard
+                |> requiredDecoder board
+                |> required "threads" (list thread)
     in
-        get domain ("board/" ++ name)
+        request domain (BoardPath name)
             |> withExpectJson decoder
             |> send
 
 
-identityDecoder : Decoder ( String, String )
-identityDecoder =
-    decode (,)
-        |> required "name" string
-        |> required "email" string
+getThreadComments : String -> Id -> Maybe Int -> Maybe Int -> Cmd Msg
+getThreadComments domain id from to =
+    let
+        decoder : Decoder Msg
+        decoder =
+            decode (GetThreadComments id)
+                |> requiredDecoder (list comment)
+    in
+        request domain (ThreadCommentsPath id from to)
+            |> withExpectJson decoder
+            |> send
 
 
 signup : String -> SignupForm -> Cmd Msg
@@ -153,9 +75,9 @@ signup domain form =
                     )
                 |> Decode.map SetSignupForm
     in
-        post domain "signup"
+        request domain SignupPath
             |> withJsonBody (convertSignupForm form)
-            |> withExpectJson (Decode.map OkSignup identityDecoder)
+            |> withExpectJson (Decode.map OkSignup identity_)
             |> sendWithErrorBody errorDecoder
 
 
@@ -184,62 +106,17 @@ login domain form =
                     |> Decode.map SetLoginForm
                 ]
     in
-        post domain "login"
+        request domain LoginPath
             |> withJsonBody (convertLoginForm form)
-            |> withExpectJson (Decode.map OkLogin identityDecoder)
+            |> withExpectJson (Decode.map OkLogin identity_)
             |> sendWithErrorBody errorDecoder
 
 
 logout : String -> Cmd Msg
 logout domain =
-    delete domain "login"
+    request domain LogoutPath
         |> withExpectJson (Decode.succeed OkLogout)
         |> send
-
-
-withExpectJson : Decoder a -> RequestBuilder b -> RequestBuilder a
-withExpectJson decoder =
-    withExpect <| expectJson decoder
-
-
-sendWithErrorBody : Decoder Msg -> RequestBuilder Msg -> Cmd Msg
-sendWithErrorBody errorDecoder =
-    HttpBuilder.send (responseHandler errorDecoder)
-
-
-send : RequestBuilder Msg -> Cmd Msg
-send =
-    sendWithErrorBody <| Decode.fail "Ignore Error Body"
-
-
-responseHandler : Decoder Msg -> Result Error Msg -> Msg
-responseHandler errorDecoder res =
-    case res of
-        Ok msg ->
-            msg
-
-        Err (BadUrl msg) ->
-            NoHandle <| "Bad url : " ++ msg
-
-        Err Timeout ->
-            NoHandle "Timeout"
-
-        Err NetworkError ->
-            NoHandle "Network Error"
-
-        Err (BadStatus { status, body }) ->
-            case ( status.code, decodeString errorDecoder body ) of
-                ( _, Ok msg ) ->
-                    msg
-
-                ( 401, _ ) ->
-                    Unauthenticated
-
-                _ ->
-                    NoHandle <| "Bad status : " ++ toString status.code ++ " " ++ status.message
-
-        Err (BadPayload msg { body }) ->
-            NoHandle <| "Bad body : " ++ body ++ "\n" ++ msg
 
 
 convertSignupForm : SignupForm -> Value
