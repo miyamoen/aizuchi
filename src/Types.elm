@@ -147,12 +147,13 @@ type TagColors
 type Msg
     = SetRoute Route
     | MoveTo Route
+    | SetSignupForm SignupForm
+    | SetLoginForm LoginForm
+    | SetCommentForm CommentForm
     | Signup
     | OkSignup ( String, String )
-    | SetSignupForm SignupForm
     | Login
     | OkLogin ( String, String )
-    | SetLoginForm LoginForm
     | Logout
     | OkLogout
     | GetBoards (List Board)

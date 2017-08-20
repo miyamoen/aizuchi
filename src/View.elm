@@ -55,26 +55,45 @@ notFound model =
 
 
 thread : Model -> Id -> Element Styles variation Msg
-thread { threads, comments } id =
+thread ({ threads, comments } as model) id =
     let
         maybeThread =
             List.filter (.id >> (==) id) threads
                 |> List.head
     in
         column None
-            [ yScrollbar, width <| fill 1 ]
-            (List.map comment comments)
+            [ width <| fill 1, height <| fill 1 ]
+            [ column ThreadClass
+                [ yScrollbar
+                , width <| fill 1
+                , height <| fill 1
+                ]
+                (List.map comment comments)
+            , commentForm model.commentForm
+            ]
 
 
+commentForm : CommentForm -> Element Styles variation Msg
+commentForm ({ threadId, content, format } as form) =
+    row None
+        [ padding 10, height <| fill 1 ]
+        [ column None
+            [ width <| fill 1
+            ]
+            [ textArea TextArea
+                [ onInput
+                    (\content ->
+                        { form | content = content }
+                            |> SetCommentForm
+                    )
+                ]
+                content
+            ]
+        , commentContent format content
+        ]
 
--- case maybeThread of
---     Just thread ->
---         paragraph None [] [ text <| toString thread ]
---     Nothing ->
---         paragraph None [] [ text "Threadとってくるよ～" ]
 
-
-comment : Comment -> Element Styles variation Msg
+comment : Comment -> Element Styles variation msg
 comment { content, postedAt, postedBy, format, index } =
     row None
         [ padding 5
@@ -83,24 +102,32 @@ comment { content, postedAt, postedBy, format, index } =
         ]
         [ image ("https://flathash.com/" ++ postedBy.name) None [ width <| px 64, height <| px 64 ] empty
         , column None
-            [ spacing 10 ]
+            [ paddingTop 17, spacing 10 ]
             [ row None
                 [ spacing 20 ]
                 [ paragraph None [] [ text <| toString index ]
                 , paragraph None [] [ text postedBy.name ]
                 , paragraph None [] [ text <| DateTime.toISO8601 postedAt ]
                 ]
-            , case format of
-                Plain ->
-                    paragraph None [ padding 5 ] [ text content ]
-
-                Markdown ->
-                    el None [ paddingXY 60 5 ] <| markdown content
-
-                Voice ->
-                    paragraph None [ padding 5 ] [ text "Not Supported Voice Comment" ]
+            , commentContent format content
             ]
         ]
+
+
+commentContent : Format -> String -> Element Styles variation msg
+commentContent format content =
+    case format of
+        Plain ->
+            el None [ width <| fill 1, padding 5 ] <|
+                paragraph PlainText [] [ text content ]
+
+        Markdown ->
+            el None [ width <| fill 1, paddingXY 60 5 ] <|
+                markdown content
+
+        Voice ->
+            el None [ width <| fill 1, padding 5 ] <|
+                paragraph None [] [ text "Not Supported Voice Comment" ]
 
 
 board : Model -> String -> Element Styles variation Msg

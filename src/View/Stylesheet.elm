@@ -22,6 +22,9 @@ type Styles
     | Input
     | Tag
     | Navbar
+    | ThreadClass
+    | PlainText
+    | TextArea
     | Font1
     | Font2
     | Font3
@@ -113,6 +116,12 @@ styleSheet =
             , Font.justifyAll
             , Font.weight 5
             ]
+        , style PlainText
+            [ Font.preWrap ]
+        , style ThreadClass
+            [ Style.prop "overflow-x" "hidden" ]
+        , style TextArea
+            [ Style.prop "resize" "vertical" ]
         ]
             ++ fontSizeStyles
 
