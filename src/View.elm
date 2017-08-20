@@ -23,7 +23,7 @@ view model =
 
 rootElement : Model -> Element Styles variation Msg
 rootElement ({ route } as model) =
-    column None
+    column Main
         [ height <| fill 1
         , width <| fill 1
         ]
@@ -61,19 +61,45 @@ thread { threads, comments } id =
             List.filter (.id >> (==) id) threads
                 |> List.head
     in
-        case maybeThread of
-            Just thread ->
-                paragraph None [] [ text <| toString thread ]
-
-            Nothing ->
-                paragraph None [] [ text "Threadとってくるよ～" ]
+        column None
+            [ yScrollbar, width <| fill 1 ]
+            (List.map comment comments)
 
 
-comment : Model -> Comment -> Element Styles variation Msg
-comment _ { content, postedAt, postedBy, format, index } =
+
+-- case maybeThread of
+--     Just thread ->
+--         paragraph None [] [ text <| toString thread ]
+--     Nothing ->
+--         paragraph None [] [ text "Threadとってくるよ～" ]
+
+
+comment : Comment -> Element Styles variation Msg
+comment { content, postedAt, postedBy, format, index } =
     row None
-        []
+        [ padding 5
+        , spacing 8
+        , width <| fill 1
+        ]
         [ image ("https://flathash.com/" ++ postedBy.name) None [ width <| px 64, height <| px 64 ] empty
+        , column None
+            [ spacing 10 ]
+            [ row None
+                [ spacing 20 ]
+                [ paragraph None [] [ text <| toString index ]
+                , paragraph None [] [ text postedBy.name ]
+                , paragraph None [] [ text <| DateTime.toISO8601 postedAt ]
+                ]
+            , case format of
+                Plain ->
+                    paragraph None [ padding 5 ] [ text content ]
+
+                Markdown ->
+                    el None [ paddingXY 60 5 ] <| markdown content
+
+                Voice ->
+                    paragraph None [ padding 5 ] [ text "Not Supported Voice Comment" ]
+            ]
         ]
 
 

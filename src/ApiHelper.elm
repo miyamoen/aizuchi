@@ -82,6 +82,11 @@ withExpectJson decoder =
     withExpect <| expectJson decoder
 
 
+withExpectAlways : a -> RequestBuilder b -> RequestBuilder a
+withExpectAlways a =
+    withExpect <| expectStringResponse (\res -> Ok a)
+
+
 sendWithErrorBody : Decoder Msg -> RequestBuilder Msg -> Cmd Msg
 sendWithErrorBody errorDecoder =
     HttpBuilder.send (responseHandler errorDecoder)

@@ -115,7 +115,7 @@ login domain form =
 logout : String -> Cmd Msg
 logout domain =
     request domain LogoutPath
-        |> withExpectJson (Decode.succeed OkLogout)
+        |> withExpectAlways OkLogout
         |> send
 
 

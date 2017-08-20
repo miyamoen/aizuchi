@@ -13,6 +13,7 @@ type alias Model =
     , identity : Maybe User
     , signupForm : SignupForm
     , loginForm : LoginForm
+    , commentForm : CommentForm
     , boards : List Board
     , threads : List Thread
     , comments : List Comment
@@ -54,6 +55,13 @@ type alias LoginForm =
     , nameErrors : List String
     , password : String
     , passwordErrors : List String
+    }
+
+
+type alias CommentForm =
+    { threadId : Maybe Id
+    , content : String
+    , format : Format
     }
 
 

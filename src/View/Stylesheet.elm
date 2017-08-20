@@ -1,6 +1,7 @@
 module View.StyleSheet exposing (Styles(..), styleSheet)
 
-import View.Colors exposing (..)
+import View.Colors as Colors
+import Color.Mixing as Mixing
 import Style exposing (..)
 import Style.Font as Font
 import Style.Color as Color
@@ -12,6 +13,7 @@ import Color exposing (Color)
 
 type Styles
     = None
+    | Main
     | Logo
     | FormCard
     | Card
@@ -33,10 +35,14 @@ styleSheet : StyleSheet Styles variation
 styleSheet =
     Style.styleSheet <|
         [ style None []
+        , style Main
+            [ Color.background <| Mixing.fade 0.8 Colors.white
+            , Color.text Colors.ultramarine
+            ]
         , style Logo
             [ fontSize.size1
             , Font.justifyAll
-            , fontBold
+            , Font.bold
             ]
         , style FormCard
             [ shadows
@@ -65,11 +71,11 @@ styleSheet =
         , style CardHeader
             [ shadows [ Shadow.box { shadow | offset = ( 0, 1 ), blur = 1 } ] ]
         , style Button
-            [ Color.background primary.main
-            , Color.text colors.white
-            , fontBold
+            [ Color.background Colors.primary
+            , Color.text Colors.moon
+            , Font.bold
             , Style.shadows
-                [ Shadow.box { shadow | offset = ( 0, 5 ), color = primary.shadow } ]
+                [ Shadow.box { shadow | offset = ( 0, 5 ), color = Mixing.darken 0.2 Colors.primary } ]
             , Style.cursor "pointer"
             , Border.none
             , Border.rounded 3
@@ -80,26 +86,26 @@ styleSheet =
             , hover
                 [ Style.translate 0 1 0
                 , Style.shadows
-                    [ Shadow.box { shadow | offset = ( 0, 4 ), color = primary.shadow } ]
+                    [ Shadow.box { shadow | offset = ( 0, 4 ), color = Mixing.darken 0.2 Colors.primary } ]
                 ]
             , pseudo "active"
-                [ Color.background primary.shadow
+                [ Color.background <| Mixing.darken 0.1 Colors.primary
                 , Style.translate 0 5 0
                 , Style.shadows
-                    [ Shadow.box { shadow | color = primary.shadow } ]
+                    [ Shadow.box { shadow | color = Mixing.darken 0.5 Colors.primary } ]
                 ]
             ]
         , style Input
             [ Border.all 1
             , Border.rounded 3
             , Border.solid
-            , Color.border colors.border
+            , Color.border Colors.moon
             ]
         , style Tag
             [ Font.center
             , Font.lineHeight 1.5
-            , Color.text colors.white
-            , Color.background primary.main
+            , Color.text Colors.white
+            , Color.background Colors.primary
             , Border.rounded 10
             ]
         , style Navbar
@@ -133,7 +139,7 @@ shadow =
     { offset = ( 0, 0 )
     , size = 0
     , blur = 0
-    , color = colors.shadow
+    , color = Mixing.darken 0.1 Colors.moon
     }
 
 
@@ -168,8 +174,3 @@ fontSize =
         , size6 = base * 1.0 |> Font.size
         , size7 = base * 0.75 |> Font.size
         }
-
-
-fontBold : Property style variation
-fontBold =
-    Font.weight 700

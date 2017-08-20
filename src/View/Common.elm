@@ -5,6 +5,7 @@ import View.StyleSheet as StyleSheet exposing (Styles(..))
 import Element exposing (..)
 import Element.Events exposing (..)
 import Element.Attributes as Attrs exposing (..)
+import Markdown
 import Debug exposing (log, crash)
 
 
@@ -31,8 +32,14 @@ tag label =
     el StyleSheet.Tag
         [ center
         , verticalCenter
-        , width <| px <| toFloat <| String.length label * 30
+        , width <| px 40
         , paddingXY 5 0
         ]
     <|
         paragraph Font7 [] [ text label ]
+
+
+markdown : String -> Element Styles variation msg
+markdown content =
+    Markdown.toHtml [] content
+        |> Element.html

@@ -19,6 +19,7 @@ initialModel =
     , identity = Nothing
     , signupForm = initialSignupForm
     , loginForm = initialLoginForm
+    , commentForm = initialCommentForm
     , boards = []
     , threads = []
     , comments = []
@@ -43,6 +44,14 @@ initialLoginForm =
     , nameErrors = []
     , password = ""
     , passwordErrors = []
+    }
+
+
+initialCommentForm : CommentForm
+initialCommentForm =
+    { threadId = Nothing
+    , content = ""
+    , format = Plain
     }
 
 
