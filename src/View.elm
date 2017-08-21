@@ -67,6 +67,7 @@ thread ({ threads, comments } as model) id =
                 [ yScrollbar
                 , width <| fill 1
                 , height <| fill 1
+                , maxHeight <| percent 90
                 ]
                 (List.map comment comments)
             , commentForm model.commentForm
@@ -76,20 +77,20 @@ thread ({ threads, comments } as model) id =
 commentForm : CommentForm -> Element Styles variation Msg
 commentForm ({ threadId, content, format } as form) =
     row None
-        [ padding 10, height <| fill 1 ]
+        [ padding 10, height <| fill 1, maxHeight <| px 200, yScrollbar ]
         [ column None
-            [ width <| fill 1
-            ]
+            [ width <| percent 50 ]
             [ textArea TextArea
                 [ onInput
                     (\content ->
                         { form | content = content }
                             |> SetCommentForm
                     )
+                , height <| percent 100
                 ]
                 content
             ]
-        , commentContent format content
+        , el None [ width <| percent 50 ] <| commentContent format content
         ]
 
 

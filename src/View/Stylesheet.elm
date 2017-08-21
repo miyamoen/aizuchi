@@ -13,6 +13,7 @@ import Color exposing (Color)
 
 type Styles
     = None
+    | TestStyle
     | Main
     | Logo
     | FormCard
@@ -121,7 +122,10 @@ styleSheet =
         , style ThreadClass
             [ Style.prop "overflow-x" "hidden" ]
         , style TextArea
-            [ Style.prop "resize" "vertical" ]
+            [ Style.prop "resize" "vertical", Style.prop "overflow-y" "hidden" ]
+        , style TestStyle
+            [ Font.preWrap -- Style.prop "display" "table"
+            ]
         ]
             ++ fontSizeStyles
 
