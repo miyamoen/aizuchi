@@ -37,6 +37,7 @@ type ApiPath
     | BoardPath String
     | ThreadPath Id
     | ThreadCommentsPath Id (Maybe Int) (Maybe Int)
+    | CreateCommentPath Id
 
 
 type alias SignupForm =
@@ -59,8 +60,7 @@ type alias LoginForm =
 
 
 type alias CommentForm =
-    { threadId : Maybe Id
-    , content : String
+    { content : String
     , format : Format
     }
 
@@ -156,6 +156,8 @@ type Msg
     | OkLogin ( String, String )
     | Logout
     | OkLogout
+    | PostComment Id
+    | OkComment Id
     | GetBoards (List Board)
     | GetBoard Board (List Thread)
     | GetThreadComments Id (List Comment)

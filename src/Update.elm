@@ -69,6 +69,17 @@ update msg model =
         SetCommentForm form ->
             { model | commentForm = form } => []
 
+        PostComment thireadId ->
+            model => [ Api.postComment model.apiUri thireadId model.commentForm ]
+
+        OkComment threadId ->
+            let
+                form =
+                    model.commentForm
+            in
+                { model | commentForm = { form | content = "" } }
+                    => [ Api.getThreadComments model.apiUri threadId (Just 1) Nothing ]
+
         GetBoards boards ->
             { model | boards = boards } => []
 

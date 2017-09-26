@@ -24,8 +24,9 @@ view model =
 rootElement : Model -> Element Styles variation Msg
 rootElement ({ route } as model) =
     column Main
-        [ height <| fill 1
-        , width <| fill 1
+        [ -- height <| fill 1
+          -- , width <| fill 1
+          minHeight <| fill 1
         ]
         [ navbar model
         , case route of
@@ -70,12 +71,12 @@ thread ({ threads, comments } as model) id =
                 , maxHeight <| percent 90
                 ]
                 (List.map comment comments)
-            , commentForm model.commentForm
+            , commentForm id model.commentForm
             ]
 
 
-commentForm : CommentForm -> Element Styles variation Msg
-commentForm ({ threadId, content, format } as form) =
+commentForm : Id -> CommentForm -> Element Styles variation Msg
+commentForm threadId ({ content, format } as form) =
     row None
         [ padding 10, height <| fill 1, maxHeight <| px 200, yScrollbar ]
         [ column None
@@ -86,9 +87,20 @@ commentForm ({ threadId, content, format } as form) =
                         { form | content = content }
                             |> SetCommentForm
                     )
-                , height <| percent 100
+                , rows 17
                 ]
                 content
+            , row None
+                []
+                [ button <|
+                    el Button
+                        [ height <| px 40
+                        , type_ "submit"
+                        , onClick <| PostComment threadId
+                        ]
+                    <|
+                        text "New Comment"
+                ]
             ]
         , el None [ width <| percent 50 ] <| commentContent format content
         ]

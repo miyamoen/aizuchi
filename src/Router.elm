@@ -9,16 +9,21 @@ import Debug exposing (log, crash)
 
 router : Location -> Msg
 router location =
-    oneOf
-        [ map SignupRoute <| s "signup"
-        , map LoginRoute <| s "login"
-        , map BoardRoute <| s "board" </> string
-        , map ThreadRoute <| s "thread" </> int
-        , map TopRoute <| s ""
-        ]
-        |> flip parseHash location
-        |> Maybe.withDefault NotFoundRoute
-        |> SetRoute
+    case location.hash of
+        "" ->
+            SetRoute TopRoute
+
+        _ ->
+            oneOf
+                [ map SignupRoute <| s "signup"
+                , map LoginRoute <| s "login"
+                , map BoardRoute <| s "board" </> string
+                , map ThreadRoute <| s "thread" </> int
+                , map TopRoute <| s ""
+                ]
+                |> flip parseHash (log "nandakore" location)
+                |> Maybe.withDefault NotFoundRoute
+                |> SetRoute
 
 
 moveTo : Route -> Cmd msg

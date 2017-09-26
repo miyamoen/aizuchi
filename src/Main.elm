@@ -50,8 +50,7 @@ initialLoginForm =
 
 initialCommentForm : CommentForm
 initialCommentForm =
-    { threadId = Nothing
-    , content = ""
+    { content = ""
     , format = Plain
     }
 

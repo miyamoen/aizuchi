@@ -53,6 +53,14 @@ getThreadComments domain id from to =
             |> send
 
 
+postComment : String -> Id -> CommentForm -> Cmd Msg
+postComment domain threadId form =
+    request domain (CreateCommentPath threadId)
+        |> withJsonBody (convertCommentForm form)
+        |> withExpectAlways (OkComment threadId)
+        |> send
+
+
 signup : String -> SignupForm -> Cmd Msg
 signup domain form =
     let
@@ -133,4 +141,24 @@ convertLoginForm { name, password } =
     Encode.object
         [ ( "user/name", Encode.string name )
         , ( "user/password", Encode.string password )
+        ]
+
+
+convertCommentForm : CommentForm -> Value
+convertCommentForm { content, format } =
+    Encode.object
+        [ ( "comment/content", Encode.string content )
+        , ( "comment/format"
+          , Encode.string
+                (case format of
+                    Plain ->
+                        "comment.format/plain"
+
+                    Markdown ->
+                        "comment.format/markdown"
+
+                    Voice ->
+                        "comment.format/voice"
+                )
+          )
         ]

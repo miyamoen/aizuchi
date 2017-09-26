@@ -69,6 +69,11 @@ toRequestWithApiPath domain apiPath =
                     |> toFullPath
                     |> get
 
+            CreateCommentPath threadId ->
+                [ "thread", toString threadId, "comments" ]
+                    |> toFullPath
+                    |> post
+
 
 request : String -> ApiPath -> RequestBuilder ()
 request domain apiPath =
